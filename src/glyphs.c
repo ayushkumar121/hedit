@@ -5,6 +5,9 @@
 */
 void glyphInit(Glyph *glyph)
 {
+    // if(glyph->id)
+    //     return;
+
     Vertex vertices[] = {
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 1.0f,

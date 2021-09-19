@@ -1,12 +1,16 @@
 #include <app.h>
 
+#define topbarWidth 100 // In char length
+
 /* Global variables */
 Char *filePath = "buffer.txt";
 Char *logPath = "hedit.logs";
 Char *fontPath = "assets/fonts/Cascadia.ttf";
 
-Uint cols = 80;
-Uint rows = 40;
+//Uint cols = 40;
+//Uint rows = 1;
+
+Uint maxbufferSize = 100; // 100 columns
 
 Uint width = 640;
 Uint height = 480;
@@ -23,7 +27,7 @@ Uint bufferSize = 0;
 Char *buffer;
 Cell *cells;
 Glyph *glyphs;
-V2 offset = {.x = 10.0f, .y = 40.0f};
+V2 offset = {.x = 10.0f, .y = 50.0f};
 V4 colors[] =
     {
         /* foreground color */
@@ -48,36 +52,33 @@ FILE *file;
 static void
 glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-    if (bufferSize < rows * cols)
+    if (bufferSize > 0 && key == GLFW_KEY_BACKSPACE && action == GLFW_PRESS)
     {
-        if (bufferSize > 0 && key == GLFW_KEY_BACKSPACE)
+        bufferSize--;
+
+        if (col <= 0 && row > 0)
         {
-            bufferSize--;
-
-            if (col <= 0 && row > 1)
-            {
-                col = cells[bufferSize].col;
-                row--;
-            }
-            else
-            {
-                col--;
-            }
+            col = cells[bufferSize].col;
+            row--;
         }
-
-        if (key == GLFW_KEY_ENTER)
+        else
         {
-            Uint i = bufferSize++;
-
-            cells[i].row = row;
-            cells[i].col = col;
-            cells[i].data = '\n';
-
-            col = 0;
-            row++;
-
-            glyphInit(&glyphs[i]);
+            col--;
         }
+    }
+
+    if (bufferSize < maxbufferSize && key == GLFW_KEY_ENTER && action == GLFW_PRESS)
+    {
+        Uint i = bufferSize++;
+
+        cells[i].row = row;
+        cells[i].col = col;
+        cells[i].data = '\n';
+
+        col = 0;
+        row++;
+        
+        glyphInit(&glyphs[i]);
     }
 }
 
@@ -87,18 +88,22 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 static void
 glfwCharCallback(GLFWwindow *window, Uint codepoint)
 {
-    if (bufferSize < rows * cols)
+    if (bufferSize >= maxbufferSize)
     {
-        Uint i = bufferSize++;
+        maxbufferSize = maxbufferSize + 100;
 
-        cells[i].row = row;
-        cells[i].col = col;
-        cells[i].data = codepoint;
-
-        col++;
-
-        glyphInit(&glyphs[i]);
+        cells = (Cell *)realloc(cells, maxbufferSize * sizeof(Cell));
+        glyphs = (Glyph *)realloc(glyphs, maxbufferSize * sizeof(Glyph));
     }
+
+    Uint i = bufferSize++;
+
+    cells[i].row = row;
+    cells[i].col = col;
+    cells[i].data = codepoint;
+
+    col++;
+    glyphInit(&glyphs[i]);
 }
 
 /*
@@ -117,8 +122,8 @@ void glfwResizeCallback(GLFWwindow *window, int newWidth, int newHeight)
  */
 void appLoop(App *app)
 {
-    Char topbarText[40];
-    sprintf(topbarText, "File: %s, Size: %d bytes", filePath, bufferSize);
+    Char topbarText[topbarWidth];
+    sprintf(topbarText, "File: %s, Size: %d/%d bytes, (%d,%d)", filePath, bufferSize, maxbufferSize, col, row);
 
     glyphBufferDraw(topbar, topbarText, strlen(topbarText), &fontfamily, topbaroffset, colors[1]);
 
@@ -145,16 +150,21 @@ void appInit(App *app, int argc, char *argv[])
     file = fopen(filePath, "r");
 
     /* Allocating memory */
-    cells = (Cell *)malloc(rows * cols * sizeof(Cell));
-    buffer = (Char *)malloc(rows * cols * sizeof(Char));
-    glyphs = (Glyph *)malloc(rows * cols * sizeof(Glyph));
-    topbar = (Glyph *)malloc(cols * sizeof(Glyph));
+    topbar = (Glyph *)malloc(topbarWidth * sizeof(Glyph));
+    cells = (Cell *)malloc(maxbufferSize * sizeof(Cell));
+    glyphs = (Glyph *)malloc(maxbufferSize * sizeof(Glyph));
 
     logInit(logPath);
     windowInit(&app->window, width, height);
     fontsInit(&fontfamily, fontPath);
     shaderInit(&shader);
     glyphInit(&cursor);
+
+    // For topbar
+    for (size_t i = 0; i < topbarWidth; i++)
+    {
+        glyphInit(&topbar[i]);
+    }
 
     if (file)
     {
@@ -163,10 +173,18 @@ void appInit(App *app, int argc, char *argv[])
         long fsize = ftell(file);
         fseek(file, 0, SEEK_SET);
 
+        buffer = (Char *)malloc(fsize + 1);
         fread(buffer, sizeof(char), fsize, file);
         fclose(file);
 
         bufferSize = fsize;
+        if (bufferSize >= maxbufferSize)
+        {
+            maxbufferSize = bufferSize + 100;
+            cells = (Cell *)realloc(cells, maxbufferSize * sizeof(Cell));
+            glyphs = (Glyph *)realloc(glyphs, maxbufferSize * sizeof(Glyph));
+        }
+
         for (size_t i = 0; i < bufferSize; i++)
         {
             cells[i].row = row;
@@ -175,24 +193,17 @@ void appInit(App *app, int argc, char *argv[])
 
             col++;
 
-            if (col > cols || buffer[i] == '\n' || buffer[i] == '\r')
+            if (col > maxbufferSize || buffer[i] == '\n' || buffer[i] == '\r')
             {
                 col = 0;
                 row++;
             }
+
+            glyphInit(&glyphs[i]);
         }
     }
+
     file = fopen(filePath, "w+");
-
-    for (size_t i = 0; i < bufferSize; i++)
-    {
-        glyphInit(&glyphs[i]);
-    }
-
-    for (size_t i = 0; i < cols; i++)
-    {
-        glyphInit(&topbar[i]);
-    }
 
     /* Registering callbacks */
     glfwSetKeyCallback(app->window.glfwWindow, glfwKeyCallback);
@@ -229,12 +240,12 @@ void appRun(App *app)
  */
 void appCleanup()
 {
-    for (size_t i = 0; i < rows * cols; i++)
+    for (size_t i = 0; i < maxbufferSize; i++)
     {
         glyphCleanup(&glyphs[i]);
     }
 
-    for (size_t i = 0; i < cols; i++)
+    for (size_t i = 0; i < topbarWidth; i++)
     {
         glyphCleanup(&topbar[i]);
     }
@@ -245,6 +256,8 @@ void appCleanup()
 
     if (file)
     {
+        buffer = (Char *)malloc(bufferSize);
+
         for (size_t i = 0; i < bufferSize; i++)
         {
             buffer[i] = cells[i].data;
@@ -259,10 +272,10 @@ void appCleanup()
         logError("Cannot write buffer to file");
     }
 
-    // free(cells);
-    // free(glyphs);
-    // free(topbar);
-    // free(buffer);
+    free(cells);
+    free(glyphs);
+    free(topbar);
+    free(buffer);
 
     logInfo("Resource cleanup done");
     logClose();
