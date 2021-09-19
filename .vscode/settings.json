@@ -1,0 +1,19 @@
+{
+    "files.associations": {
+        "freeglut.h": "c",
+        "ft2build.h": "c",
+        "fonts.h": "c",
+        "quad.h": "c",
+        "ftheader.h": "c",
+        "glew.h": "c",
+        "cstdio": "c",
+        "logger.h": "c",
+        "stdarg.h": "c",
+        "window.h": "c",
+        "cmath": "c",
+        "random": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c"
+    }
+}
