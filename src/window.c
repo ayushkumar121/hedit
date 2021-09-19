@@ -55,7 +55,7 @@ void windowInit(Window *window, Uint width, Uint height)
     }
     logInfo("GLFW initializationed");
 
-    // glfwSetWindowOpacity(window->glfwWindow, 0.5f);
+    glfwSetWindowOpacity(window->glfwWindow, 0.7f);
     glfwMakeContextCurrent(window->glfwWindow);
 
     GLenum glew_status = glewInit();
