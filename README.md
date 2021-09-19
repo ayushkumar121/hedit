@@ -1,5 +1,10 @@
 # hEdit : Hardware accelerated code editor
 
+## Goals
+
+The main goal of this project is to create a minimalist editor similar to vim or emacs using hardware accelerated so that your CPU is free for other things aka compilers
+
+
 ## Libaries
 
 - **GLFW** - for creating and managing windows and handling input
