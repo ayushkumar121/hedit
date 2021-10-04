@@ -66,11 +66,11 @@ void glyphDraw(Glyph *glyph, FontFamily *fontfamily)
             0.0f, 0.0f, 0.0f, 1.0f};
 
     /* Binding Uniforms */
-    glUniformMatrix4fv(1, 1, GL_TRUE, translation[0]); /* Translation matrix      */
-    glUniformMatrix4fv(2, 1, GL_TRUE, scale[0]);       /* Scaling matrix          */
+    glUniformMatrix4fv(2, 1, GL_TRUE, translation[0]); /* Translation matrix      */
+    glUniformMatrix4fv(3, 1, GL_TRUE, scale[0]);       /* Scaling matrix          */
 
-    glUniform4f(3, glyph->color.r, glyph->color.g, glyph->color.b, glyph->color.a);
-    glUniform1i(4, 0); /* Binding texture slot  */
+    glUniform4f(5, glyph->color.r, glyph->color.g, glyph->color.b, glyph->color.a);
+    glUniform1i(6, 0); /* Binding texture slot  */
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, fontfamily->faces[ch].id);

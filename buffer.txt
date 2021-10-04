@@ -1,21 +1,29 @@
-PNAME=hedit
-IDIR=include
-SDIR=src
-ODIR=bin
+<GL/glew.h>
+#define GLEW_STATIC
 
-DEPS   := $(shell find $(IDIR) -name "*.h")
-SFILES := $(shell find $(SDIR) -name "*.c")
-FREETYPE := $(shell pkg-config --cflags freetype2)
-OBJ=$(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(SFILES))
+#include <gmath.h>
+#include <logger.h>
+#include <window.h>
+#include <shader.h>
+#include <glyphs.h>
 
-CC=gcc
-CFLAGS=-lglfw -lGL -lGLEW -lm -lfreetype -L/usr/local/lib -I$(IDIR) $(FREETYPE) -ggdb
+#include <time.h>
 
-$(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+typedef struct Cell
+{
+    Uint row;
+    Uint col;
 
-build: $(OBJ)
-	$(CC) $^ -o $(PNAME) $(CFLAGS)
+    Char data;
+}  Cell;
 
-clean:
-	rm -f $(ODIR)/*.o
+typedef struct App
+{
+    Window window;
+} App;
+
+void appInit(App *app, int argc, char *argv[]);
+void appRun(App  *app);
+void appCleanup();
+
+#endif /* APP_H */a

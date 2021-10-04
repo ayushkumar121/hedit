@@ -55,7 +55,7 @@ void windowInit(Window *window, Uint width, Uint height)
     }
     logInfo("GLFW initializationed");
 
-    glfwSetWindowOpacity(window->glfwWindow, 0.7f);
+    // glfwSetWindowOpacity(window->glfwWindow, 0.7f);
     glfwMakeContextCurrent(window->glfwWindow);
 
     GLenum glew_status = glewInit();
@@ -80,7 +80,7 @@ void windowInit(Window *window, Uint width, Uint height)
 /*
  * Get an orthographic projection matrix
  */
-void windowBind(Uint width, Uint height)
+void windowBind(Uint width, Uint height, V2 camera)
 {
     float left = 0.0f;
     float right = width;
@@ -96,7 +96,15 @@ void windowBind(Uint width, Uint height)
             0.0f, 0.0f, -2.0f / (farZ - nearZ), -(farZ + nearZ) / (farZ - nearZ),
             0.0f, 0.0f, 0.0f, 1.0f};
 
+    float view[4][4] =
+        {
+            1.0f, 0.0f, 0.0f, camera.x,
+            0.0f, 1.0f, 0.0f, camera.y,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f};
+
     glUniformMatrix4fv(0, 1, GL_TRUE, projection[0]);
+    glUniformMatrix4fv(1, 1, GL_TRUE, view[0]);
 }
 
 void windowCleanup()

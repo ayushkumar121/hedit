@@ -10,6 +10,8 @@
 #include <shader.h>
 #include <glyphs.h>
 
+#include <time.h>
+
 typedef struct Cell
 {
     Uint row;
