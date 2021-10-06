@@ -14,12 +14,13 @@ FontFamily fontfamily = {.height = 16};
 Shader shader = {0};
 
 /* For cursor */
-Int cursorPos = -1;
+Int cursorIndex = 0;
+Int col = 0;
+Int row = 0;
+
 Glyph cursor = {.ch = '_', .color = {.r = 0.0f, .g = 1.0f, .b = 0.0f, .a = 1.0f}};
 
 /* For current buffer */
-Int col = 0;
-Int row = 0;
 Uint bufferSize = 0;
 Uint maxbufferSize = 100;
 
@@ -58,59 +59,55 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     {
         camera.y -= 0.05f;
     }
-    if (key == GLFW_KEY_LEFT && GLFW_PRESS_AND_REPEAT(action) && cursorPos > 0)
+    if (key == GLFW_KEY_LEFT && GLFW_PRESS_AND_REPEAT(action) && cursorIndex > 0)
     {
-        cursorPos--;
+        cursorIndex--;
+        col--;
     }
-    if (key == GLFW_KEY_RIGHT && GLFW_PRESS_AND_REPEAT(action) && cursorPos < (Int)bufferSize - 1)
+    if (key == GLFW_KEY_RIGHT && GLFW_PRESS_AND_REPEAT(action))
     {
-        cursorPos++;
+        cursorIndex++;
+        col++;
     }
 
     /* Handling Backspace */
     if (key == GLFW_KEY_BACKSPACE && GLFW_PRESS_AND_REPEAT(action) && bufferSize > 0)
     {
+        // if (cursorIndex < (Int)bufferSize && cursorIndex >= 0)
+        // {
+        //     Uint k = cursorIndex--;
+        //     Cell kcell = cells[k];
+        //     Cell knext = cells[k + 1];
 
-        if (cursorPos < (Int)bufferSize && cursorPos >= 0)
-        {
-            Uint k = cursorPos--;
-            Cell kcell = cells[k];
-            Cell knext = cells[k + 1];
+        //     for (size_t i = k; i < bufferSize - 1; i++)
+        //     {
+        //         cells[i] = cells[i + 1];
 
-            for (size_t i = k; i < bufferSize - 1; i++)
-            {
-                cells[i] = cells[i + 1];
+        //         if (cells[i].row == kcell.row)
+        //         {
+        //             cells[i].col--;
+        //         }
 
-                if (cells[i].row == kcell.row)
-                {
-                    cells[i].col--;
-                }
-
-                if (kcell.col == 0 && knext.row != kcell.row)
-                {
-                    cells[i].row--;
-                }
-            }
-            bufferSize--;
-        }
+        //         if (kcell.col == 0 && knext.row != kcell.row)
+        //         {
+        //             cells[i].row--;
+        //         }
+        //     }
+        //     bufferSize--;
+        // }
     }
 
     /* Handling Return */
-    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && cursorPos > -1 && bufferSize < maxbufferSize)
+    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
     {
+        Uint k = cursorIndex++;
+        bufferSize++;
 
-        Uint k = cursorPos++;
-        // cursorPos = bufferSize - 1;
-
-        cells[k].row = row;
+        cells[k].row = row++;
         cells[k].col = col;
         cells[k].data = '\n';
 
-        for (size_t i = k; i < bufferSize; i++)
-        {
-           cells[i].row++;
-        }
-        glyphInit(&glyphs[k]);
+        col = 0;
     }
 }
 
@@ -128,34 +125,16 @@ glfwCharCallback(GLFWwindow *window, Uint codepoint)
         glyphs = (Glyph *)realloc(glyphs, maxbufferSize * sizeof(Glyph));
     }
 
-    if (cursorPos > 0 && cursorPos < (Int)bufferSize - 1)
+    Uint k = cursorIndex++;
+
+    cells[k].row = row;
+    cells[k].col = col++;
+    cells[k].data = codepoint;
+
+    if (cursorIndex > bufferSize)
     {
-        Uint k = cursorPos++;
         bufferSize++;
-
-        for (size_t i = bufferSize - 1; i > k; i--)
-        {
-            cells[i] = cells[i - 1];
-            cells[i].col++;
-        }
-
-        // cells[k].col = col;
-        cells[k].data = codepoint;
-        glyphInit(&glyphs[bufferSize - 1]);
     }
-    else
-    {
-        Uint k = bufferSize++;
-        cursorPos++;
-
-        cells[k].row = row;
-        cells[k].col = col;
-        cells[k].data = codepoint;
-
-        glyphInit(&glyphs[k]);
-    }
-
-    col++;
 }
 
 /*
@@ -181,25 +160,20 @@ void appLoop(App *app)
             maxbufferSize,
             col,
             row,
-            cursorPos);
+            cursorIndex);
 
     glyphBufferDraw(topbar, topbarText, strlen(topbarText), &fontfamily, topbaroffset, colors[1]);
 
-    if (bufferSize > 0 && cursorPos >= 0)
-    {
-        cursor.pos.x = cells[cursorPos].col * (fontfamily.faces[cursor.ch].advance >> 6) + offset.x;
-        cursor.pos.y = cells[cursorPos].row * fontfamily.height + offset.y;
-    }
-    else
-    {
-        cursor.pos.x = offset.x - (fontfamily.faces[cursor.ch].advance >> 6);
-        cursor.pos.y = offset.y;
-    }
+    cursor.pos.x = col * (fontfamily.faces[cursor.ch].advance >> 6) + offset.x;
+    cursor.pos.y = row * fontfamily.height + offset.y;
 
     glyphDraw(&cursor, &fontfamily);
 
     for (size_t i = 0; i < bufferSize; i++)
     {
+        if (glyphs[i].id == 0)
+            glyphInit(&glyphs[i]);
+
         glyphs[i].pos.x = cells[i].col * (fontfamily.faces[cells[i].data].advance >> 6) + offset.x;
         glyphs[i].pos.y = cells[i].row * fontfamily.height + offset.y;
 
@@ -248,6 +222,7 @@ void appInit(App *app, int argc, char *argv[])
         fclose(file);
 
         bufferSize = fsize;
+        cursorIndex = fsize;
         if (bufferSize > maxbufferSize)
         {
             maxbufferSize = bufferSize + 100;
