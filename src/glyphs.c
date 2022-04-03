@@ -45,7 +45,7 @@ void glyphDraw(Glyph *glyph, FontFamily *fontfamily)
     char ch = glyph->ch ? glyph->ch : ' ';
 
     float tx = glyph->pos.x + fontfamily->faces[ch].bearingX;
-    float ty = glyph->pos.y - (fontfamily->faces[ch].bearingY);
+    float ty = glyph->pos.y - (fontfamily->faces[ch].bearingY + 10.0f);
 
     float sx = fontfamily->faces[glyph->ch].width;
     float sy = fontfamily->faces[glyph->ch].height;
@@ -69,7 +69,7 @@ void glyphDraw(Glyph *glyph, FontFamily *fontfamily)
     glUniformMatrix4fv(2, 1, GL_TRUE, translation[0]); /* Translation matrix      */
     glUniformMatrix4fv(3, 1, GL_TRUE, scale[0]);       /* Scaling matrix          */
 
-    glUniform4f(5, glyph->color.r, glyph->color.g, glyph->color.b, glyph->color.a);
+    glUniform4f(5, glyph->fg.r, glyph->fg.g, glyph->fg.b, glyph->fg.a);
     glUniform1i(6, 0); /* Binding texture slot  */
 
     glActiveTexture(GL_TEXTURE0);
@@ -86,19 +86,26 @@ void glyphDraw(Glyph *glyph, FontFamily *fontfamily)
  * Drawing an entire buffer
  */
 void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
-                     FontFamily *fontfamily, V2 pos, V4 color)
+                     FontFamily *fontfamily, Vec2 pos, Vec4 color)
 {
-    float x = pos.width;
+    float x = pos.x;
+    float y = pos.y;
+
     for (size_t i = 0; i < bufferSize; i++)
     {
         glyphs[i].pos.x = x;
-        glyphs[i].pos.y = pos.y;
+        glyphs[i].pos.y = y;
 
         glyphs[i].ch = buffer[i];
-        glyphs[i].color = color;
+        glyphs[i].fg = color;
 
         glyphDraw(&glyphs[i], fontfamily);
         x += (fontfamily->faces[buffer[i]].advance >> 6);
+        
+        if(buffer[i] == '\n') {
+            y += fontfamily->faces[buffer[i]].height;
+            x = pos.x;
+        }
     }
 }
 

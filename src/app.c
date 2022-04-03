@@ -2,46 +2,65 @@
 
 #define topbarWidth 100 // In char length
 
+enum Mode
+{
+    NORMAL,
+    EDIT,
+};
+
 /* Global variables */
 Uint width = 640;
 Uint height = 480;
 
 Char *filePath = "buffer.txt";
 Char *logPath = "hedit.logs";
-Char *fontPath = "assets/fonts/Cascadia.ttf";
+Char *fontPath = "assets/fonts/MonospaceBold.ttf";
 
 FontFamily fontfamily = {.height = 16};
 Shader shader = {0};
 
 /* For cursor */
 Int cursorIndex = 0;
-Int col = 0;
-Int row = 0;
-
-Glyph cursor = {.ch = '_', .color = {.r = 0.0f, .g = 1.0f, .b = 0.0f, .a = 1.0f}};
-
-/* For current buffer */
-Uint bufferSize = 0;
-Uint maxbufferSize = 100;
-
-Cell *cells;
-Glyph *glyphs;
-V2 offset = {.x = 10.0f, .y = 50.0f};
-V4 colors[] =
-    {
-        /* foreground color */
-        [0] = {.r = 0.92f, .g = 0.86f, .b = 0.70f, .a = 1.0f},
-        [1] = {.r = 0.83f, .g = 0.36f, .b = 0.05f, .a = 1.0f},
-        [2] = {.r = 0.0f, .g = 1.0f, .b = 0.0f, .a = 1.0f}};
-
-V2 camera = {.x = 0.0f, .y = 0.0f};
+Glyph cursor = {
+    .ch = '_',
+    .pos = {0.0f, 0.0f},
+    .fg = {0.0f, 1.0f, 0.0f, 1.0f},
+};
+Vec2 camera = {.x = 0.0f, .y = 0.0f};
 
 /* Topbar */
 Glyph *topbar;
-V2 topbaroffset = {.x = 10.0f, .y = 20.0f};
+Char topbarText[topbarWidth];
+Vec2 topbarOffset = {10.0f, 60.0f};
+
+/* For current buffer */
+Glyph *glyphs;
+Char *buffer;
+
+Uint bufferSize = 0;
+Uint maxbufferSize = 60;
+Vec2 bufferOffset = {10.0f, 80.0f};
+
+Vec4 colors[] = {
+    /* foreground color */
+    [0] = {0.92f, 0.86f, 0.70f, 1.0f},
+    [1] = {0.83f, 0.36f, 0.05f, 1.0f},
+    [2] = {0.0f, 1.00f, 0.00f, 1.0f},
+};
+
+void bufferRealloc()
+{
+    if (bufferSize >= maxbufferSize)
+    {
+        maxbufferSize = bufferSize + 500;
+
+        buffer = (Char *)realloc(buffer, maxbufferSize * sizeof(Cell));
+        glyphs = (Glyph *)realloc(glyphs, maxbufferSize * sizeof(Glyph));
+    }
+}
 
 /*
- * GLFW Callbacks 
+ * GLFW Callbacks
  */
 
 /*
@@ -53,61 +72,41 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     /* Handling arrow keys */
     if (key == GLFW_KEY_UP && GLFW_PRESS_AND_REPEAT(action))
     {
-        camera.y += 0.05f;
+        camera.y -= 0.05f;
     }
     if (key == GLFW_KEY_DOWN && GLFW_PRESS_AND_REPEAT(action))
     {
-        camera.y -= 0.05f;
+        camera.y += 0.05f;
     }
-    if (key == GLFW_KEY_LEFT && GLFW_PRESS_AND_REPEAT(action) && cursorIndex > 0)
+    if (key == GLFW_KEY_LEFT && GLFW_PRESS_AND_REPEAT(action))
     {
-        cursorIndex--;
-        col--;
+        if (cursorIndex > 0)
+            cursorIndex--;
     }
     if (key == GLFW_KEY_RIGHT && GLFW_PRESS_AND_REPEAT(action))
     {
-        cursorIndex++;
-        col++;
+        if (cursorIndex < (bufferSize))
+            cursorIndex++;
     }
 
     /* Handling Backspace */
-    if (key == GLFW_KEY_BACKSPACE && GLFW_PRESS_AND_REPEAT(action) && bufferSize > 0)
+    if (key == GLFW_KEY_BACKSPACE && GLFW_PRESS_AND_REPEAT(action))
     {
-        // if (cursorIndex < (Int)bufferSize && cursorIndex >= 0)
-        // {
-        //     Uint k = cursorIndex--;
-        //     Cell kcell = cells[k];
-        //     Cell knext = cells[k + 1];
+        if (cursorIndex >= bufferSize)
+        {
+            if (cursorIndex > 0)
+                cursorIndex--;
 
-        //     for (size_t i = k; i < bufferSize - 1; i++)
-        //     {
-        //         cells[i] = cells[i + 1];
-
-        //         if (cells[i].row == kcell.row)
-        //         {
-        //             cells[i].col--;
-        //         }
-
-        //         if (kcell.col == 0 && knext.row != kcell.row)
-        //         {
-        //             cells[i].row--;
-        //         }
-        //     }
-        //     bufferSize--;
-        // }
+            if (bufferSize > 0)
+                bufferSize--;
+        }
     }
 
     /* Handling Return */
     if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
     {
-        Uint k = cursorIndex++;
-        bufferSize++;
-
-        cells[k].row = row++;
-        cells[k].col = col;
-        cells[k].data = '\n';
-
-        col = 0;
+        bufferRealloc();
+        buffer[bufferSize++] = '\n';
     }
 }
 
@@ -117,30 +116,24 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 static void
 glfwCharCallback(GLFWwindow *window, Uint codepoint)
 {
-    if (bufferSize >= maxbufferSize)
+    bufferRealloc();
+
+    if (cursorIndex < bufferSize)
     {
-        maxbufferSize = maxbufferSize + 100;
-
-        cells = (Cell *)realloc(cells, maxbufferSize * sizeof(Cell));
-        glyphs = (Glyph *)realloc(glyphs, maxbufferSize * sizeof(Glyph));
+        buffer[cursorIndex] = codepoint;
     }
-
-    Uint k = cursorIndex++;
-
-    cells[k].row = row;
-    cells[k].col = col++;
-    cells[k].data = codepoint;
-
-    if (cursorIndex > bufferSize)
+    else
     {
-        bufferSize++;
+        buffer[bufferSize++] = codepoint;
     }
+    cursorIndex++;
 }
 
 /*
  * Resize callback
  */
-void glfwResizeCallback(GLFWwindow *window, int newWidth, int newHeight)
+static void
+glfwResizeCallback(GLFWwindow *window, int newWidth, int newHeight)
 {
     width = newWidth;
     height = newHeight;
@@ -149,52 +142,70 @@ void glfwResizeCallback(GLFWwindow *window, int newWidth, int newHeight)
 }
 
 /*
- * Main frame loop 
+ * Main frame loop
  */
 void appLoop(App *app)
 {
-    Char topbarText[topbarWidth];
-    sprintf(topbarText, "File: %s, Size: %d/%d bytes, (%d,%d), %d",
+    for (size_t i = 0; i < topbarWidth; i++)
+    {
+        if (!topbar[i].id)
+            glyphInit(&topbar[i]);
+    }
+
+    for (size_t i = 0; i < maxbufferSize; i++)
+    {
+        if (!glyphs[i].id)
+            glyphInit(&glyphs[i]);
+    }
+
+    sprintf(topbarText, "File: %s, Size: %d/%d bytes, %d",
             filePath,
             bufferSize,
             maxbufferSize,
-            col,
-            row,
             cursorIndex);
 
-    glyphBufferDraw(topbar, topbarText, strlen(topbarText), &fontfamily, topbaroffset, colors[1]);
+    glyphBufferDraw(topbar,
+                    topbarText,
+                    strlen(topbarText),
+                    &fontfamily,
+                    topbarOffset,
+                    colors[1]);
 
-    cursor.pos.x = col * (fontfamily.faces[cursor.ch].advance >> 6) + offset.x;
-    cursor.pos.y = row * fontfamily.height + offset.y;
+    glyphBufferDraw(glyphs,
+                    buffer,
+                    bufferSize,
+                    &fontfamily,
+                    bufferOffset,
+                    colors[0]);
+
+    if (cursorIndex < bufferSize)
+    {
+        cursor.pos = glyphs[cursorIndex].pos;
+    }
+    else if (bufferSize > 0)
+    {
+        cursor.pos = addV2(glyphs[bufferSize - 1].pos, (Vec2){10.0f, 0.0f});
+    }
+    else
+    {
+        cursor.pos = bufferOffset;
+    }
 
     glyphDraw(&cursor, &fontfamily);
-
-    for (size_t i = 0; i < bufferSize; i++)
-    {
-        if (glyphs[i].id == 0)
-            glyphInit(&glyphs[i]);
-
-        glyphs[i].pos.x = cells[i].col * (fontfamily.faces[cells[i].data].advance >> 6) + offset.x;
-        glyphs[i].pos.y = cells[i].row * fontfamily.height + offset.y;
-
-        glyphs[i].ch = cells[i].data;
-        glyphs[i].color = colors[0];
-
-        glyphDraw(&glyphs[i], &fontfamily);
-    }
 }
 
 /*
- * Initializing App and allocating memory 
+ * Initializing App and allocating memory
  */
 void appInit(App *app, int argc, char *argv[])
 {
+
     FILE *file = fopen(filePath, "r");
 
     /* Allocating memory */
     topbar = (Glyph *)malloc(topbarWidth * sizeof(Glyph));
-    cells = (Cell *)malloc(maxbufferSize * sizeof(Cell));
     glyphs = (Glyph *)malloc(maxbufferSize * sizeof(Glyph));
+    buffer = (Char *)malloc(maxbufferSize * sizeof(Char));
 
     logInit(logPath);
     windowInit(&app->window, width, height);
@@ -202,55 +213,31 @@ void appInit(App *app, int argc, char *argv[])
     shaderInit(&shader);
     glyphInit(&cursor);
 
-    // For topbar
-    for (size_t i = 0; i < topbarWidth; i++)
-    {
-        glyphInit(&topbar[i]);
-    }
+    /* Registering callbacks */
+    glfwSetKeyCallback(app->window.glfwWindow, glfwKeyCallback);
+    glfwSetCharCallback(app->window.glfwWindow, glfwCharCallback);
+    glfwSetFramebufferSizeCallback(app->window.glfwWindow, glfwResizeCallback);
 
     if (file)
     {
-        Char *buffer;
-
         /* Find a better way to get size of a file */
         fseek(file, 0, SEEK_END);
         long fsize = ftell(file);
         fseek(file, 0, SEEK_SET);
 
-        buffer = (Char *)malloc(fsize + 1);
+        if (fsize > bufferSize)
+        {
+            buffer = (Char *)realloc(buffer, fsize);
+        }
+        
         fread(buffer, sizeof(char), fsize, file);
         fclose(file);
 
         bufferSize = fsize;
         cursorIndex = fsize;
-        if (bufferSize > maxbufferSize)
-        {
-            maxbufferSize = bufferSize + 100;
-            cells = (Cell *)realloc(cells, maxbufferSize * sizeof(Cell));
-            glyphs = (Glyph *)realloc(glyphs, maxbufferSize * sizeof(Glyph));
-        }
 
-        for (size_t i = 0; i < bufferSize; i++)
-        {
-            cells[i].row = row;
-            cells[i].col = col++;
-            cells[i].data = buffer[i];
-
-            if (col > maxbufferSize || buffer[i] == '\n' || buffer[i] == '\r')
-            {
-                col = 0;
-                row++;
-            }
-
-            glyphInit(&glyphs[i]);
-        }
-        free(buffer);
+        bufferRealloc();
     }
-
-    /* Registering callbacks */
-    glfwSetKeyCallback(app->window.glfwWindow, glfwKeyCallback);
-    glfwSetCharCallback(app->window.glfwWindow, glfwCharCallback);
-    glfwSetFramebufferSizeCallback(app->window.glfwWindow, glfwResizeCallback);
 }
 
 /*
@@ -275,7 +262,7 @@ void appRun(App *app)
 }
 
 /*
- * Deleting app resources 
+ * Deleting app resources
  */
 void appCleanup()
 {
@@ -294,29 +281,20 @@ void appCleanup()
     fontsCleanup(&fontfamily);
     shadersCleanup(&shader);
     windowCleanup();
+
     FILE *file = fopen(filePath, "w+");
 
     if (file && bufferSize > 0)
     {
-        Char *buffer;
-        buffer = (Char *)malloc(bufferSize);
-
-        for (size_t i = 0; i < bufferSize; i++)
-        {
-            buffer[i] = cells[i].data;
-        }
-
         fwrite(buffer, 1, bufferSize, file);
         fclose(file);
         logInfo("Buffer wrote to file");
-
-        free(buffer);
-        free(cells);
     }
     else
     {
         logError("Cannot write buffer to file");
     }
+    free(buffer);
 
     logInfo("Resource cleanup done");
     logClose();

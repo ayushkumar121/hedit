@@ -21,7 +21,7 @@ typedef struct Window
 #define GLFW_PRESS_AND_REPEAT(action) (action == GLFW_REPEAT || action == GLFW_PRESS)
 
 void windowInit(Window *window, Uint width, Uint height);
-void windowBind(Uint width, Uint height, V2 camera);
+void windowBind(Uint width, Uint height, Vec2 camera);
 void windowCleanup();
 
 #endif /* WINDOW_H */

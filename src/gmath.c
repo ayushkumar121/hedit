@@ -2,11 +2,20 @@
 
 /* Vector operations */
 
-/* V4 + V4 */
-void addV4(V4 a, V4 b, V4 *out)
+Vec2 addV2(Vec2 a, Vec2 b)
 {
-    out->x = a.x + b.x;
-    out->y = a.y + b.y;
-    out->z = a.z + b.z;
-    out->w = a.w + b.w;
+    return (Vec2){
+        a.x + b.x,
+        a.y + b.y,
+    };
+}
+
+Vec4 addV4(Vec4 a, Vec4 b)
+{
+    return (Vec4){
+        a.x + b.x,
+        a.y + b.y,
+        a.z + b.z,
+        a.w + b.w,
+    };
 }

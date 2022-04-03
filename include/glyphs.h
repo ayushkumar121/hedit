@@ -8,14 +8,15 @@
 
 typedef struct Vertex
 {
-    V2 pos;
-    V2 tex;
+    Vec2 pos;
+    Vec2 tex;
 } Vertex;
 
 typedef struct Glyph
 {
-    V2 pos;
-    V4 color;
+    Vec2 pos;
+    Vec4 fg;
+    Vec4 bg;
 
     Uint id;
     Char ch;
@@ -26,6 +27,6 @@ void glyphDraw(Glyph *glyph, FontFamily *fonts);
 void glyphCleanup(Glyph *glyph);
 
 void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
-                     FontFamily *fonts, V2 pos, V4 color);
+                     FontFamily *fonts, Vec2 pos, Vec4 color);
 
 #endif /* GLYPH_H */

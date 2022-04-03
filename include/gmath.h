@@ -16,7 +16,7 @@ typedef float Float;
 typedef unsigned int Uint;
 typedef unsigned char Uchar;
 
-typedef union V2
+typedef union Vec2
 {
     struct
     {
@@ -31,9 +31,9 @@ typedef union V2
         float width, height;
     };
     float data[2];
-} V2;
+} Vec2;
 
-typedef union V3
+typedef union Vec3
 {
     struct
     {
@@ -44,9 +44,9 @@ typedef union V3
         float r, g, b;
     };
     float data[3];
-} V3;
+} Vec3;
 
-typedef union V4
+typedef union Vec4
 {
     struct
     {
@@ -57,9 +57,10 @@ typedef union V4
         float r, g, b, a;
     };
     float data[4];
-} V4;
+} Vec4;
 
 /* Vector operations */
-void addV4(V4 a, V4 b, V4 *out);
+Vec2 addV2(Vec2 a, Vec2 b);
+Vec4 addV4(Vec4 a, Vec4 b);
 
 #endif /* GMATH_H */

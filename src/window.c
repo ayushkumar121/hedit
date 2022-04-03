@@ -80,7 +80,7 @@ void windowInit(Window *window, Uint width, Uint height)
 /*
  * Get an orthographic projection matrix
  */
-void windowBind(Uint width, Uint height, V2 camera)
+void windowBind(Uint width, Uint height, Vec2 camera)
 {
     float left = 0.0f;
     float right = width;
