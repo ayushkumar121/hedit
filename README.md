@@ -4,6 +4,13 @@
 
 The main goal of this project is to create a minimalist editor similar to vim or emacs using hardware accelerated so that your CPU is free for other things aka compilers
 
+## TODO
+[x] Basic Text Editing  
+[ ] Scrolling  
+[ ] Syntax highlighting  
+[ ] Multiple buffers (editor split)  
+[ ] File browser  
+[ ] Lua plugin support  
 
 ## Libaries
 

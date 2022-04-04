@@ -12,7 +12,7 @@ Char *filePath = "buffer.txt";
 
 /* For cursor */
 Glyph cursor = {
-    .ch = cursorChar,
+    .ch = Cursor,
     .pos = {0.0f, 0.0f},
     .fg = {0.0f, 1.0f, 0.0f, 1.0f},
 };
@@ -22,7 +22,7 @@ Vec2 cameraOffset = {.x = 0.0f, .y = 0.0f};
 
 /* Topbar */
 Glyph *topbar;
-Char topbarText[topbarWidth];
+Char topbarText[TopbarWidth];
 
 /* For current buffer */
 Glyph *glyphs;
@@ -138,7 +138,7 @@ glfwResizeCallback(GLFWwindow *window, int newWidth, int newHeight)
  */
 void appLoop(App *app)
 {
-    for (size_t i = 0; i < topbarWidth; i++)
+    for (size_t i = 0; i < TopbarWidth; i++)
     {
         if (!topbar[i].id)
             glyphInit(&topbar[i]);
@@ -195,13 +195,13 @@ void appInit(App *app, int argc, char *argv[])
     FILE *file = fopen(filePath, "r");
 
     /* Allocating memory */
-    topbar = (Glyph *)malloc(topbarWidth * sizeof(Glyph));
+    topbar = (Glyph *)malloc(TopbarWidth * sizeof(Glyph));
     buffer = (Char *)malloc(maxbufferSize * sizeof(Char));
     glyphs = (Glyph *)malloc(maxbufferSize * sizeof(Glyph));
 
     logInit("hedit.logs");
     windowInit(&app->window, width, height);
-    fontsInit(&fontfamily, fontPath);
+    fontsInit(&fontfamily, FontPath);
     shaderInit(&shader);
     glyphInit(&cursor);
 
@@ -264,7 +264,7 @@ void appCleanup()
     }
     free(glyphs);
 
-    for (size_t i = 0; i < topbarWidth; i++)
+    for (size_t i = 0; i < TopbarWidth; i++)
     {
         glyphCleanup(&topbar[i]);
     }

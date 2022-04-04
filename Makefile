@@ -12,7 +12,7 @@ CC=gcc
 CFLAGS=-lglfw -lGL -lGLEW -lm -lfreetype -L/usr/local/lib -I$(IDIR) $(FREETYPE) -ggdb
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS) -Iconfig.h
 
 build: $(OBJ)
 	$(CC) $^ -o $(PNAME) $(CFLAGS)

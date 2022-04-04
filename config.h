@@ -1,8 +1,10 @@
+#ifndef CONFIG_H
+#define CONFIG_H
 
-#define cursorChar '_'
-#define topbarWidth 100
+#define Cursor '_'
+#define TopbarWidth 100
 
-#define fontPath "assets/fonts/Cascadia.ttf"
+#define FontPath "assets/fonts/Cascadia.ttf"
 
 const static Vec2 topbarOffset = {10.0f, 40.0f};
 const static Vec2 bufferOffset = {10.0f, 60.0f};
@@ -30,3 +32,5 @@ const static Vec4 colors[] = {
     [FOREGROUND] = {1.0f, 1.0f, 1.0f, 1.0f},
     [BACKGROUND] = {0.0f, 0.0f, 0.0f, 1.0f},
 };
+
+#endif /* CONFIG_H */
