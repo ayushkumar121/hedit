@@ -70,7 +70,7 @@ void windowInit(Window *window, Uint width, Uint height)
     /* OpenGL Error Handling */
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(glErrorCallback, NULL);
-    glClearColor(60.0f / 255.0f, 56.0f / 255.0f, 54.0f / 255.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     /* Enable Blending */
     glEnable(GL_BLEND);

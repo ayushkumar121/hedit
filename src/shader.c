@@ -48,14 +48,16 @@ shaderInit(Shader *shader)
     /* Fragment Shader */
     const char *fs_source =
         "#version 430 core\n"
-        "layout(location = 5) uniform vec4 u_Color;"
-        "layout(location = 6) uniform sampler2D u_Texture;"
+        "layout(location = 5) uniform vec4 u_Fg;"
+        // "layout(location = 6) uniform vec4 u_Bg;"
+        "layout(location = 7) uniform sampler2D u_Texture;"
         "in vec2 v_TexCoord;"
         "out vec4 fragColor;"
         "void main()"
         "{"
+        // "   u_Bg = vec4(1.0);"
         "   vec4 sampled = vec4(1.0, 1.0, 1.0, texture(u_Texture, v_TexCoord).r);"
-        "   fragColor = sampled * u_Color;"
+        "   fragColor = sampled * u_Fg;"
         "}";
 
     unsigned int fs = createShader(GL_FRAGMENT_SHADER, fs_source);

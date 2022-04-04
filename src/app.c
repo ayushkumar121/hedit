@@ -1,37 +1,28 @@
 #include <app.h>
+#include <config.h>
 
-#define topbarWidth 100 // In char length
-
-enum Mode
-{
-    NORMAL,
-    EDIT,
-};
+FontFamily fontfamily = {.height = 16};
+Shader shader = {0};
 
 /* Global variables */
 Uint width = 640;
 Uint height = 480;
 
 Char *filePath = "buffer.txt";
-Char *logPath = "hedit.logs";
-Char *fontPath = "assets/fonts/MonospaceBold.ttf";
-
-FontFamily fontfamily = {.height = 16};
-Shader shader = {0};
 
 /* For cursor */
-Int cursorIndex = 0;
 Glyph cursor = {
-    .ch = '_',
+    .ch = cursorChar,
     .pos = {0.0f, 0.0f},
     .fg = {0.0f, 1.0f, 0.0f, 1.0f},
 };
-Vec2 camera = {.x = 0.0f, .y = 0.0f};
+
+Int cursorIndex = 0;
+Vec2 cameraOffset = {.x = 0.0f, .y = 0.0f};
 
 /* Topbar */
 Glyph *topbar;
 Char topbarText[topbarWidth];
-Vec2 topbarOffset = {10.0f, 60.0f};
 
 /* For current buffer */
 Glyph *glyphs;
@@ -39,22 +30,14 @@ Char *buffer;
 
 Uint bufferSize = 0;
 Uint maxbufferSize = 60;
-Vec2 bufferOffset = {10.0f, 80.0f};
-
-Vec4 colors[] = {
-    /* foreground color */
-    [0] = {0.92f, 0.86f, 0.70f, 1.0f},
-    [1] = {0.83f, 0.36f, 0.05f, 1.0f},
-    [2] = {0.0f, 1.00f, 0.00f, 1.0f},
-};
 
 void bufferRealloc()
 {
-    if (bufferSize >= maxbufferSize)
+    if (bufferSize >= maxbufferSize - 1)
     {
         maxbufferSize = bufferSize + 500;
 
-        buffer = (Char *)realloc(buffer, maxbufferSize * sizeof(Cell));
+        buffer = (Char *)realloc(buffer, maxbufferSize * sizeof(Char));
         glyphs = (Glyph *)realloc(glyphs, maxbufferSize * sizeof(Glyph));
     }
 }
@@ -72,11 +55,11 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     /* Handling arrow keys */
     if (key == GLFW_KEY_UP && GLFW_PRESS_AND_REPEAT(action))
     {
-        camera.y -= 0.05f;
+        cameraOffset.y -= 10.0f;
     }
     if (key == GLFW_KEY_DOWN && GLFW_PRESS_AND_REPEAT(action))
     {
-        camera.y += 0.05f;
+        cameraOffset.y += 10.0f;
     }
     if (key == GLFW_KEY_LEFT && GLFW_PRESS_AND_REPEAT(action))
     {
@@ -85,7 +68,7 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     }
     if (key == GLFW_KEY_RIGHT && GLFW_PRESS_AND_REPEAT(action))
     {
-        if (cursorIndex < (bufferSize))
+        if (cursorIndex < bufferSize)
             cursorIndex++;
     }
 
@@ -106,7 +89,16 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
     {
         bufferRealloc();
-        buffer[bufferSize++] = '\n';
+
+        if (cursorIndex < bufferSize)
+        {
+            buffer[cursorIndex] = '\n';
+        }
+        else
+        {
+            buffer[bufferSize++] = '\n';
+        }
+        cursorIndex++;
     }
 }
 
@@ -164,19 +156,19 @@ void appLoop(App *app)
             maxbufferSize,
             cursorIndex);
 
+    glyphBufferDraw(glyphs,
+                    buffer,
+                    bufferSize,
+                    &fontfamily,
+                    addV2(bufferOffset, cameraOffset),
+                    colors[YELLOW]);
+
     glyphBufferDraw(topbar,
                     topbarText,
                     strlen(topbarText),
                     &fontfamily,
                     topbarOffset,
-                    colors[1]);
-
-    glyphBufferDraw(glyphs,
-                    buffer,
-                    bufferSize,
-                    &fontfamily,
-                    bufferOffset,
-                    colors[0]);
+                    colors[WHITE]);
 
     if (cursorIndex < bufferSize)
     {
@@ -204,10 +196,10 @@ void appInit(App *app, int argc, char *argv[])
 
     /* Allocating memory */
     topbar = (Glyph *)malloc(topbarWidth * sizeof(Glyph));
-    glyphs = (Glyph *)malloc(maxbufferSize * sizeof(Glyph));
     buffer = (Char *)malloc(maxbufferSize * sizeof(Char));
+    glyphs = (Glyph *)malloc(maxbufferSize * sizeof(Glyph));
 
-    logInit(logPath);
+    logInit("hedit.logs");
     windowInit(&app->window, width, height);
     fontsInit(&fontfamily, fontPath);
     shaderInit(&shader);
@@ -225,18 +217,18 @@ void appInit(App *app, int argc, char *argv[])
         long fsize = ftell(file);
         fseek(file, 0, SEEK_SET);
 
-        if (fsize > bufferSize)
+        if (fsize > maxbufferSize)
         {
-            buffer = (Char *)realloc(buffer, fsize);
+            maxbufferSize = fsize + 500;
+            buffer = (Char *)realloc(buffer, maxbufferSize * sizeof(Char));
+            glyphs = (Glyph *)realloc(glyphs, maxbufferSize * sizeof(Glyph));
         }
-        
+
         fread(buffer, sizeof(char), fsize, file);
         fclose(file);
 
         bufferSize = fsize;
         cursorIndex = fsize;
-
-        bufferRealloc();
     }
 }
 
@@ -252,7 +244,7 @@ void appRun(App *app)
         glClear(GL_COLOR_BUFFER_BIT);
 
         shaderBind(&shader);
-        windowBind(width, height, camera);
+        windowBind(width, height, (Vec2){0.0f, 0.0f});
         appLoop(app);
         shaderUnbind();
 

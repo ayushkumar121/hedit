@@ -70,7 +70,7 @@ void glyphDraw(Glyph *glyph, FontFamily *fontfamily)
     glUniformMatrix4fv(3, 1, GL_TRUE, scale[0]);       /* Scaling matrix          */
 
     glUniform4f(5, glyph->fg.r, glyph->fg.g, glyph->fg.b, glyph->fg.a);
-    glUniform1i(6, 0); /* Binding texture slot  */
+    glUniform1i(7, 0); /* Binding texture slot  */
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, fontfamily->faces[ch].id);
@@ -86,7 +86,7 @@ void glyphDraw(Glyph *glyph, FontFamily *fontfamily)
  * Drawing an entire buffer
  */
 void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
-                     FontFamily *fontfamily, Vec2 pos, Vec4 color)
+                     FontFamily *fontfamily, Vec2 pos, Vec4 fg)
 {
     float x = pos.x;
     float y = pos.y;
@@ -97,7 +97,7 @@ void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
         glyphs[i].pos.y = y;
 
         glyphs[i].ch = buffer[i];
-        glyphs[i].fg = color;
+        glyphs[i].fg = fg;
 
         glyphDraw(&glyphs[i], fontfamily);
         x += (fontfamily->faces[buffer[i]].advance >> 6);

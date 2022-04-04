@@ -27,6 +27,6 @@ void glyphDraw(Glyph *glyph, FontFamily *fonts);
 void glyphCleanup(Glyph *glyph);
 
 void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
-                     FontFamily *fonts, Vec2 pos, Vec4 color);
+                     FontFamily *fonts, Vec2 pos, Vec4 fg);
 
 #endif /* GLYPH_H */

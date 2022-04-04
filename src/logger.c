@@ -5,7 +5,7 @@ FILE *logs;
 /*
  * Initializing log file
  */
-void logInit(Char *logFile)
+void logInit(const Char *logFile)
 {
     logs = fopen(logFile, "w");
 

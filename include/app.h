@@ -12,14 +12,6 @@
 
 #include <time.h>
 
-typedef struct Cell
-{
-    Uint row;
-    Uint col;
-
-    Char data;
-}  Cell;
-
 typedef struct App
 {
     Window window;
