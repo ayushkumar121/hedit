@@ -161,7 +161,7 @@ void appLoop(App *app)
                     bufferSize,
                     &fontfamily,
                     addV2(bufferOffset, cameraOffset),
-                    colors[YELLOW]);
+                    colors[GREEN]);
 
     glyphBufferDraw(topbar,
                     topbarText,
