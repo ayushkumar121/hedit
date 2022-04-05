@@ -9,8 +9,6 @@
 #include <mode.h>
 #include <interface.h>
 
-FontFamily fontfamily = {.height = 16};
-
 /* Global variables */
 Uint width = 640;
 Uint height = 480;
@@ -24,10 +22,8 @@ Glyph cursor = {
     .fg = {0.0f, 1.0f, 0.0f, 1.0f},
 };
 
-// Int cursorIndex = 0;
-Vec2 cameraOffset = {.x = 0.0f, .y = 0.0f};
-
 /* For current buffer */
+FontFamily fontfamily = {.height = 16};
 
 UIText fileText = {0};
 UIText statusText = {0};
@@ -36,6 +32,7 @@ UIText commandText = {0};
 UIText *activeText;
 
 Mode curretMode = NORMAL;
+Vec2 cameraOffset = {.x = 0.0f, .y = 0.0f};
 
 void DrawStatus()
 {
@@ -200,7 +197,7 @@ static void
 glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 
-    if (key == GLFW_KEY_C && mods == GLFW_MOD_CONTROL && action == GLFW_PRESS)
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         if (curretMode == COMMAND)
         {
