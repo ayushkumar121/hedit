@@ -5,6 +5,8 @@
 
 #include <window.h>
 
+#include <logger.h>
+
 /*
  * OpenGL debug callback
  */
@@ -21,28 +23,28 @@ glErrorCallback(
     switch (severity)
     {
     case GL_DEBUG_SEVERITY_HIGH:
-        logError("GL Message: %s", message);
+        LogError("GL Message: %s", message);
         break;
 
     case GL_DEBUG_SEVERITY_MEDIUM:
-        logWarn("GL Message: %s", message);
+        LogWarn("GL Message: %s", message);
         break;
 
     default:
-        logInfo("GL Message: %s", message);
+        LogInfo("GL Message: %s", message);
         break;
     }
 }
 
 void glfwErrorCallback(int error, const char *description)
 {
-    logError("GLFW Error :%s", description);
+    LogError("GLFW Error :%s", description);
 }
 
 /*
  * initlizing window using GLUT
  */
-void windowInit(Window *window, Uint width, Uint height)
+void WindowInit(Window *window, Uint width, Uint height)
 {
     glfwSetErrorCallback(glfwErrorCallback);
     glfwInit();
@@ -50,10 +52,10 @@ void windowInit(Window *window, Uint width, Uint height)
     window->glfwWindow = glfwCreateWindow(width, height, "Hedit", NULL, NULL); // glfwGetPrimaryMonitor()
     if (!window->glfwWindow)
     {
-        logError("GLFW error initialization failed");
+        LogError("GLFW error initialization failed");
         glfwTerminate();
     }
-    logInfo("GLFW initializationed");
+    LogInfo("GLFW initializationed");
 
     // glfwSetWindowOpacity(window->glfwWindow, 0.7f);
     glfwMakeContextCurrent(window->glfwWindow);
@@ -61,11 +63,11 @@ void windowInit(Window *window, Uint width, Uint height)
     GLenum glew_status = glewInit();
     if (glew_status != GLEW_OK)
     {
-        logError("GLEW error :%s", glewGetErrorString(glew_status));
+        LogError("GLEW error :%s", glewGetErrorString(glew_status));
     } /* GLEW Inizializing failed */
 
-    logInfo("GLEW_VERSION :%s", glewGetString(GLEW_VERSION));
-    logInfo("GL_VERSION   :%s", glGetString(GL_VERSION));
+    LogInfo("GLEW_VERSION :%s", glewGetString(GLEW_VERSION));
+    LogInfo("GL_VERSION   :%s", glGetString(GL_VERSION));
 
     /* OpenGL Error Handling */
     glEnable(GL_DEBUG_OUTPUT);
@@ -75,17 +77,21 @@ void windowInit(Window *window, Uint width, Uint height)
     /* Enable Blending */
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    ShaderInit(&window->shader);
 }
 
 /*
  * Get an orthographic projection matrix
  */
-void windowBind(Uint width, Uint height, Vec2 camera)
+void WindowBind(Window *window, Vec2 camera)
 {
+    ShaderBind(&window->shader);
+
     float left = 0.0f;
-    float right = width;
+    float right = window->width;
     float top = 0.0f;
-    float bottom = height;
+    float bottom = window->height;
     float nearZ = -1.0f;
     float farZ = 1.0f;
 
@@ -105,9 +111,18 @@ void windowBind(Uint width, Uint height, Vec2 camera)
 
     glUniformMatrix4fv(0, 1, GL_TRUE, projection[0]);
     glUniformMatrix4fv(1, 1, GL_TRUE, view[0]);
+
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void windowCleanup()
+void WindowUnbind(Window *window)
 {
+    glfwSwapBuffers(window->glfwWindow);
+    glfwPollEvents();
+}
+
+void WindowCleanup(Window *window)
+{
+    ShadersCleanup(&window->shader);
     glfwTerminate();
 }

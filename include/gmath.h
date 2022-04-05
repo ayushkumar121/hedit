@@ -60,7 +60,7 @@ typedef union Vec4
 } Vec4;
 
 /* Vector operations */
-Vec2 addV2(Vec2 a, Vec2 b);
-Vec4 addV4(Vec4 a, Vec4 b);
+Vec2 AddV2(Vec2 a, Vec2 b);
+Vec4 AddV4(Vec4 a, Vec4 b);
 
 #endif /* GMATH_H */

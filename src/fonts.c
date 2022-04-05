@@ -1,21 +1,21 @@
 #include <fonts.h>
-
+#include <logger.h>
 /*
  * Initializing fonts and loading texture into OpenGL
  * and performing basic mip-mapping
  */
-void fontsInit(FontFamily *fontfamily, const Char *filepath)
+void FontsInit(FontFamily *fontfamily, const Char *filepath)
 {
     FT_Library ft;
     FT_Face face;
 
     if (FT_Init_FreeType(&ft))
     {
-        logError("FREETYPE: Could not init FreeType Library");
+        LogError("FREETYPE: Could not init FreeType Library");
     }
     if (FT_New_Face(ft, filepath, 0, &face))
     {
-        logError("FREETYPE: Failed to load font");
+        LogError("FREETYPE: Failed to load font");
     }
 
     FT_Set_Pixel_Sizes(face, fontfamily->width, fontfamily->height);
@@ -26,7 +26,7 @@ void fontsInit(FontFamily *fontfamily, const Char *filepath)
         // load character glyph
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
-            logError("FREETYTPE: Failed to load Glyph");
+            LogError("FREETYTPE: Failed to load Glyph");
             continue;
         }
         // generate texture
@@ -69,7 +69,7 @@ void fontsInit(FontFamily *fontfamily, const Char *filepath)
 /*
  * Cleaning up fonts resources and texture cleanup
  */
-void fontsCleanup(FontFamily *fonts)
+void FontsCleanup(FontFamily *fonts)
 {
     for (size_t i = 0; i < 128; i++)
     {

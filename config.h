@@ -1,8 +1,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <gmath.h>
+
 #define Cursor '_'
-#define TopbarWidth 100
+#define StatusbarWidth 100
 
 #define FontPath "assets/fonts/Cascadia.ttf"
 

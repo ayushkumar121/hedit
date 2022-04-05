@@ -3,12 +3,10 @@
 
 #include <GL/glew.h>
 
-#include <stdio.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 #include <gmath.h>
-#include <logger.h>
 
 typedef struct FontFace
 {
@@ -31,7 +29,7 @@ typedef struct FontFamily
     FontFace faces[128];
 } FontFamily;
 
-void fontsInit(FontFamily *fontfamily, const Char* filepath);
-void fontsCleanup(FontFamily *fontfamily);
+void FontsInit(FontFamily *fontfamily, const Char* filepath);
+void FontsCleanup(FontFamily *fontfamily);
 
 #endif /* FONTS_H */

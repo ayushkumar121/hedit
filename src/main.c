@@ -12,9 +12,9 @@ int main(int argc, char *argv[])
 {
     App app = {.window = {0}};
 
-    appInit(&app, argc, argv);
-    appRun(&app);
-    appCleanup();
+    AppInit(&app, argc, argv);
+    AppRun(&app);
+    AppCleanup(&app);
 
     return 0;
 }

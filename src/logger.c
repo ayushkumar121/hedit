@@ -5,17 +5,17 @@ FILE *logs;
 /*
  * Initializing log file
  */
-void logInit(const Char *logFile)
+void LogInit(const Char *logFile)
 {
     logs = fopen(logFile, "w");
 
     if (logs)
     {
-        logInfo("Log file initialized");
+        LogInfo("Log file initialized");
     }
     else
     {
-        logError("Cannot initilize log file using stdout instead");
+        LogError("Cannot initilize log file using stdout instead");
         logs = stdout;
     }
 }
@@ -23,7 +23,7 @@ void logInit(const Char *logFile)
 /*
  * Log an information message
  */
-void logInfo(const Char *fmt, ...)
+void LogInfo(const Char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -37,7 +37,7 @@ void logInfo(const Char *fmt, ...)
 /*
  * Log an warning message
  */
-void logWarn(const Char *fmt, ...)
+void LogWarn(const Char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -51,7 +51,7 @@ void logWarn(const Char *fmt, ...)
 /*
  * Log an error message
  */
-void logError(const Char *fmt, ...)
+void LogError(const Char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -60,16 +60,12 @@ void logError(const Char *fmt, ...)
     vfprintf(logs, fmt, args);
     fprintf(logs, "\n");
     fflush(logs);
-
-    // fprintf(stderr, RED "[ ERROR ] " RESET);
-    // vfprintf(stderr, fmt, args);
-    // fprintf(stderr, "\n");
 }
 
 /*
  * Closing the log file
  */
-void logClose()
+void LogClose()
 {
     if (logs != stdout)
     {

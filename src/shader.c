@@ -5,6 +5,9 @@
 
 #include <shader.h>
 
+#include <GL/glew.h>
+
+
 unsigned int 
 createShader(GLenum type, const char *source)
 {
@@ -20,7 +23,7 @@ createShader(GLenum type, const char *source)
  * Creating and compiling shader program
  */
 void 
-shaderInit(Shader *shader)
+ShaderInit(Shader *shader)
 {
     /* Shader Program */
     shader->id = glCreateProgram();
@@ -77,7 +80,7 @@ shaderInit(Shader *shader)
  * Binding the shader
  */
 void 
-shaderBind(Shader *shader)
+ShaderBind(Shader *shader)
 {
     glUseProgram(shader->id);
 }
@@ -86,7 +89,7 @@ shaderBind(Shader *shader)
  * Unbinding the shader
  */
 void 
-shaderUnbind()
+ShaderUnbind()
 {
     glUseProgram(0);
 }
@@ -95,7 +98,7 @@ shaderUnbind()
  * Shader cleanup
  */
 void 
-shadersCleanup(Shader *shader)
+ShadersCleanup(Shader *shader)
 {
     glDeleteProgram(shader->id);
 }

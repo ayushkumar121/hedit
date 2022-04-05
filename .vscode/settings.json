@@ -17,6 +17,14 @@
         "string_view": "c",
         "app.h": "c",
         "config.h": "c",
-        "cassert": "c"
+        "cassert": "c",
+        "memory.h": "c",
+        "interface.h": "c",
+        "vector": "c",
+        "glyphs.h": "c",
+        "shader.h": "c",
+        "istream": "c",
+        "ostream": "c",
+        "system_error": "c"
     }
 }

@@ -3,7 +3,7 @@
 /*
     Creating a 2D glyph with positions and tex-coords
 */
-void glyphInit(Glyph *glyph)
+void GlyphInit(Glyph *glyph)
 {
     // if(glyph->id)
     //     return;
@@ -40,7 +40,7 @@ void glyphInit(Glyph *glyph)
 /*
  * Drawing glyph
  */
-void glyphDraw(Glyph *glyph, FontFamily *fontfamily)
+void GlyphDraw(Glyph *glyph, FontFamily *fontfamily)
 {
     char ch = glyph->ch ? glyph->ch : ' ';
 
@@ -85,7 +85,7 @@ void glyphDraw(Glyph *glyph, FontFamily *fontfamily)
 /*
  * Drawing an entire buffer
  */
-void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
+void GlyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
                      FontFamily *fontfamily, Vec2 pos, Vec4 fg)
 {
     float x = pos.x;
@@ -99,10 +99,11 @@ void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
         glyphs[i].ch = buffer[i];
         glyphs[i].fg = fg;
 
-        glyphDraw(&glyphs[i], fontfamily);
+        GlyphDraw(&glyphs[i], fontfamily);
         x += (fontfamily->faces[buffer[i]].advance >> 6);
-        
-        if(buffer[i] == '\n') {
+
+        if (buffer[i] == '\n')
+        {
             y += fontfamily->faces[buffer[i]].height;
             x = pos.x;
         }
@@ -112,7 +113,7 @@ void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
 /*
  * glyph cleanup from memory
  */
-void glyphCleanup(Glyph *glyph)
+void GlyphCleanup(Glyph *glyph)
 {
     glDeleteBuffers(1, &glyph->id);
 }

@@ -1,27 +1,28 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <GL/glew.h>
-//#include <GL/freeglut.h>
-#include <GLFW/glfw3.h>
+#include <gmath.h>
+#include <shader.h>
 
-#include <logger.h>
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
 
 typedef struct Window
 {
-    // Uint width;
-    // Uint height;
+    Shader shader;
+
+    Uint width;
+    Uint height;
 
     // GLFW specific
     GLFWwindow *glfwWindow;
 } Window;
 
-#include <stdio.h>
-
 #define GLFW_PRESS_AND_REPEAT(action) (action == GLFW_REPEAT || action == GLFW_PRESS)
 
-void windowInit(Window *window, Uint width, Uint height);
-void windowBind(Uint width, Uint height, Vec2 camera);
-void windowCleanup();
+void WindowInit(Window *window, Uint width, Uint height);
+void WindowBind(Window *window, Vec2 camera); // Uint width, Uint height
+void WindowUnbind(Window *window);
+void WindowCleanup(Window *window);
 
 #endif /* WINDOW_H */

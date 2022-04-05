@@ -6,10 +6,10 @@
 
 #include <gmath.h>
 
-void logInit(const Char *logFile);
-void logInfo(const Char *fmt, ...);
-void logWarn(const Char *fmt, ...);
-void logError(const Char *fmt, ...);
-void logClose();
+void LogInit(const Char *logFile);
+void LogInfo(const Char *fmt, ...);
+void LogWarn(const Char *fmt, ...);
+void LogError(const Char *fmt, ...);
+void LogClose();
 
 #endif /* LOGGER_H */

@@ -22,11 +22,11 @@ typedef struct Glyph
     Char ch;
 } Glyph;
 
-void glyphInit(Glyph *glyph);
-void glyphDraw(Glyph *glyph, FontFamily *fonts);
-void glyphCleanup(Glyph *glyph);
+void GlyphInit(Glyph *glyph);
+void GlyphDraw(Glyph *glyph, FontFamily *fonts);
+void GlyphCleanup(Glyph *glyph);
 
-void glyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
+void GlyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
                      FontFamily *fonts, Vec2 pos, Vec4 fg);
 
 #endif /* GLYPH_H */
