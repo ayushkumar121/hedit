@@ -4,7 +4,7 @@
  * Initializing fonts and loading texture into OpenGL
  * and performing basic mip-mapping
  */
-void FontsInit(FontFamily *fontfamily, const Char *filepath)
+void FontsInit(FontFamily *fontfamily)
 {
     FT_Library ft;
     FT_Face face;
@@ -13,9 +13,9 @@ void FontsInit(FontFamily *fontfamily, const Char *filepath)
     {
         LogError("FREETYPE: Could not init FreeType Library");
     }
-    if (FT_New_Face(ft, filepath, 0, &face))
+    if (FT_New_Face(ft, fontfamily->path, 0, &face))
     {
-        LogError("FREETYPE: Failed to load font");
+        LogError("FREETYPE: Failed to load font from path %s", fontfamily->path);
     }
 
     FT_Set_Pixel_Sizes(face, fontfamily->width, fontfamily->height);

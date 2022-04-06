@@ -5,9 +5,6 @@
 
 #include <app.h>
 
-/*
- * Driver code
- */
 int main(int argc, char *argv[])
 {
     App app = {.window = {0}};

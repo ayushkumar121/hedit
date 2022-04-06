@@ -1,5 +1,10 @@
 #include <gmath.h>
 
+Vec2 V2(float x, float y)
+{
+    return (Vec2) {x, y};
+}
+
 /* Vector operations */
 
 Vec2 AddV2(Vec2 a, Vec2 b)

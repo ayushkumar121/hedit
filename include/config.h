@@ -3,13 +3,12 @@
 
 #include <gmath.h>
 
-#define Cursor '_'
-#define StatusbarWidth 100
-
-#define FontPath "assets/fonts/Cascadia.ttf"
+#define FontPath "assets/fonts/Iosevka Term.ttf"
+#define FontHeight 16
+#define FontLineSpace 5
 
 const static Vec2 topbarOffset = {10.0f, 40.0f};
-const static Vec2 bufferOffset = {10.0f, 60.0f};
+const static Vec2 bufferOffset = {10.0f, 70.0f};
 
 enum Color {
     RED,

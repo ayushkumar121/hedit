@@ -60,6 +60,7 @@ typedef union Vec4
 } Vec4;
 
 /* Vector operations */
+Vec2 V2(float x, float y);
 Vec2 AddV2(Vec2 a, Vec2 b);
 Vec4 AddV4(Vec4 a, Vec4 b);
 

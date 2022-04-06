@@ -9,7 +9,7 @@ FREETYPE := $(shell pkg-config --cflags freetype2)
 OBJ=$(patsubst $(SDIR)/%.c, $(ODIR)/%.o, $(SFILES))
 
 CC=gcc
-CFLAGS=-lglfw -lGL -lGLEW -lm -lfreetype -L/usr/local/lib -I./ -I$(IDIR) $(FREETYPE) -ggdb
+CFLAGS=-lglfw -lGL -lGLEW -lm -lfreetype -L/usr/local/lib -I$(IDIR) $(FREETYPE) -ggdb
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)

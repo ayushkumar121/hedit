@@ -8,6 +8,8 @@
 
 #include <gmath.h>
 
+#define MAX_FONTPATH_LENGTH 500
+
 typedef struct FontFace
 {
     Uint id;
@@ -23,13 +25,15 @@ typedef struct FontFace
 
 typedef struct FontFamily
 {
+    Char path[MAX_FONTPATH_LENGTH];
     Uint width;
     Uint height;
-    
+    Float lineSpace;
+
     FontFace faces[128];
 } FontFamily;
 
-void FontsInit(FontFamily *fontfamily, const Char* filepath);
+void FontsInit(FontFamily *fontfamily);
 void FontsCleanup(FontFamily *fontfamily);
 
 #endif /* FONTS_H */

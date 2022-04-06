@@ -4,7 +4,6 @@
 #include <gmath.h>
 #include <logger.h>
 #include <window.h>
-#include <glyphs.h>
 
 #include <mode.h>
 #include <interface.h>
@@ -13,40 +12,22 @@
 Uint width = 640;
 Uint height = 480;
 
-const Char *filePath = "buffer.txt";
-
-/* For cursor */
-Glyph cursor = {
-    .ch = Cursor,
-    .pos = {0.0f, 0.0f},
-    .fg = {0.0f, 1.0f, 0.0f, 1.0f},
+// const Char *filePath = "buffer.txt";
+FontFamily fontfamily = {
+    .path = FontPath,
+    .height = FontHeight,
+    .lineSpace = FontLineSpace,
 };
-
-/* For current buffer */
-FontFamily fontfamily = {.height = 16};
 
 UIText fileText = {0};
 UIText statusText = {0};
 UIText commandText = {0};
+UIText cursorText = {0};
 
 UIText *activeText;
 
 Mode curretMode = NORMAL;
-Vec2 cameraOffset = {.x = 0.0f, .y = 0.0f};
-
-void DrawStatus()
-{
-    char buf[100];
-    sprintf(buf, "Mode: [%s], File: %s, Size: (%d/%d) bytes, %d",
-            ModeString(curretMode),
-            filePath,
-            activeText->length,
-            activeText->capacity,
-            activeText->cursor);
-
-    UITextSetBuffer(&statusText, buf, strlen(buf));
-    UITextDraw(&statusText);
-}
+// Vec2 cameraOffset = {.x = 0.0f, .y = 0.0f};
 
 void ResizeBuffer()
 {
@@ -56,19 +37,82 @@ void ResizeBuffer()
     }
 }
 
-void HandleBufferInput(Char code)
+void HandleUIInput(Char code)
 {
     ResizeBuffer();
 
+    /*
+     * In between text editing
+     */
     if (activeText->cursor < activeText->length)
     {
+        Char temp = activeText->buffer[activeText->cursor];
         activeText->buffer[activeText->cursor] = code;
+
+        memcpy(activeText->buffer + activeText->cursor + 2,
+               activeText->buffer + activeText->cursor + 1, activeText->capacity - activeText->cursor);
+
+        activeText->buffer[activeText->cursor + 1] = temp;
+
+        activeText->length++;
     }
+    /*
+     * When cursor is ahed of text
+     */
     else
     {
         activeText->buffer[activeText->length++] = code;
     }
     activeText->cursor++;
+}
+
+void DrawStatus()
+{
+    char buf[100];
+    sprintf(buf, "Mode: [%s], Size: (%d/%d) bytes, %d",
+            ModeString(curretMode),
+            // filePath,
+            activeText->length,
+            activeText->capacity,
+            activeText->cursor);
+
+    UITextSetBuffer(&statusText, buf, strlen(buf));
+    UITextDraw(&statusText);
+}
+
+void DrawCursor()
+{
+    /*
+     * When cursor is between text
+     */
+    if (activeText->cursor < activeText->length)
+    {
+        Glyph g = activeText->glyphs[activeText->cursor];
+        Vec2 pos = AddV2(g.pos, V2(0.0f - fontfamily.faces[g.ch].width / 2, 0.0f));
+
+        UITextSetPos(&cursorText, pos);
+    }
+    /*
+     * When cursor is ahead of text
+     */
+    else if (activeText->length > 0)
+    {
+        Glyph g = activeText->glyphs[activeText->length - 1];
+        Vec2 pos = AddV2(g.pos, V2(fontfamily.faces[g.ch].width / 2, 0.0f));
+
+        UITextSetPos(&cursorText, pos);
+    }
+    /*
+     * When text is empty
+     */
+    else
+    {
+        Glyph g = cursorText.glyphs[0];
+        Vec2 pos = AddV2(bufferOffset, V2(0.0f - fontfamily.faces[g.ch].width / 2, 0.0f));
+
+        UITextSetPos(&cursorText, bufferOffset);
+    }
+    UITextDraw(&cursorText);
 }
 
 void AppLoop(App *app)
@@ -84,33 +128,15 @@ void AppLoop(App *app)
         UITextDraw(&commandText);
     }
 
-    if (activeText->cursor < activeText->length)
-    {
-        cursor.pos = activeText->glyphs[activeText->cursor].pos;
-    }
-    else if (activeText->length > 0)
-    {
-        cursor.pos = AddV2(
-            activeText->glyphs[activeText->length - 1].pos,
-            (Vec2){10.0f, 0.0f});
-    }
-    else
-    {
-        cursor.pos = bufferOffset;
-    }
-
-    GlyphDraw(&cursor, &fontfamily);
+    DrawCursor();
 }
 
 void AppInit(App *app, int argc, char *argv[])
 {
-    FILE *file = fopen(filePath, "r");
-
     LogInit("hedit.logs");
 
     WindowInit(&app->window, width, height);
-    FontsInit(&fontfamily, FontPath);
-    GlyphInit(&cursor);
+    FontsInit(&fontfamily);
 
     UITextInit(&fileText, &fontfamily);
     UITextSetPos(&fileText, bufferOffset);
@@ -124,26 +150,31 @@ void AppInit(App *app, int argc, char *argv[])
     UITextSetPos(&commandText, bufferOffset);
     UITextSetColor(&commandText, colors[YELLOW]);
 
+    UITextInit(&cursorText, &fontfamily);
+    UITextSetBuffer(&cursorText, "|", 1);
+    UITextSetColor(&cursorText, colors[GREEN]);
+
     activeText = &fileText;
 
-    if (file)
-    {
-        /* Find a better way to get size of a file */
-        fseek(file, 0, SEEK_END);
-        long fsize = ftell(file);
-        fseek(file, 0, SEEK_SET);
+    // FILE *file = fopen(filePath, "r");
+    // if (file)
+    // {
+    //     /* Find a better way to get size of a file */
+    //     fseek(file, 0, SEEK_END);
+    //     long fsize = ftell(file);
+    //     fseek(file, 0, SEEK_SET);
 
-        if (fsize > fileText.capacity)
-        {
-            UITextResize(&fileText, fsize + 500);
-        }
+    //     if (fsize > fileText.capacity)
+    //     {
+    //         UITextResize(&fileText, fsize + 500);
+    //     }
 
-        fread(fileText.buffer, sizeof(char), fsize, file);
-        fclose(file);
+    //     fread(fileText.buffer, sizeof(char), fsize, file);
+    //     fclose(file);
 
-        fileText.length = fsize;
-        fileText.cursor = fsize;
-    }
+    //     fileText.length = fsize;
+    //     fileText.cursor = fsize;
+    // }
 
     /* Registering callbacks */
     glfwSetKeyCallback(app->window.glfwWindow, glfwKeyCallback);
@@ -170,6 +201,7 @@ void AppCleanup(App *app)
     UITextFree(&fileText);
     UITextFree(&statusText);
     UITextFree(&commandText);
+    UITextFree(&cursorText);
 
     FontsCleanup(&fontfamily);
     WindowCleanup(&app->window);
@@ -210,14 +242,6 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
             activeText = &commandText;
         }
     }
-    // else if (key == GLFW_KEY_UP && GLFW_PRESS_AND_REPEAT(action))
-    // {
-    //     cameraOffset.y -= 10.0f;
-    // }
-    // else if (key == GLFW_KEY_DOWN && GLFW_PRESS_AND_REPEAT(action))
-    // {
-    //     cameraOffset.y += 10.0f;
-    // }
     else if (key == GLFW_KEY_LEFT && GLFW_PRESS_AND_REPEAT(action))
     {
         if (activeText->cursor > 0)
@@ -230,13 +254,19 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     }
     else if (key == GLFW_KEY_BACKSPACE && GLFW_PRESS_AND_REPEAT(action))
     {
-        if (activeText->cursor >= activeText->length)
+        if (activeText->cursor > 0)
         {
-            if (activeText->cursor > 0)
-                activeText->cursor--;
+            /*
+             * When cursor is between text
+             */
+            if (activeText->cursor < activeText->length)
+            {
+                memcpy(activeText->buffer + activeText->cursor - 1,
+                       activeText->buffer + activeText->cursor, activeText->capacity - activeText->cursor);
+            }
 
-            if (activeText->length > 0)
-                activeText->length--;
+            activeText->cursor--;
+            activeText->length--;
         }
     }
     else if (key == GLFW_KEY_ENTER && action == GLFW_PRESS)
@@ -252,7 +282,7 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
         }
         else if (curretMode == NORMAL)
         {
-            HandleBufferInput('\n');
+            HandleUIInput('\n');
         }
     }
 }
@@ -263,7 +293,7 @@ glfwKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 static void
 glfwCharCallback(GLFWwindow *window, Uint codepoint)
 {
-    HandleBufferInput(codepoint);
+    HandleUIInput(codepoint);
 }
 
 /*

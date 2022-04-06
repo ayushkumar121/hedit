@@ -45,7 +45,7 @@ void GlyphDraw(Glyph *glyph, FontFamily *fontfamily)
     char ch = glyph->ch ? glyph->ch : ' ';
 
     float tx = glyph->pos.x + fontfamily->faces[ch].bearingX;
-    float ty = glyph->pos.y - (fontfamily->faces[ch].bearingY + 10.0f);
+    float ty = glyph->pos.y - (fontfamily->faces[ch].bearingY);
 
     float sx = fontfamily->faces[glyph->ch].width;
     float sy = fontfamily->faces[glyph->ch].height;
@@ -104,7 +104,7 @@ void GlyphBufferDraw(Glyph *glyphs, Char *buffer, Uint bufferSize,
 
         if (buffer[i] == '\n')
         {
-            y += fontfamily->faces[buffer[i]].height;
+            y += fontfamily->faces[buffer[i]].height + fontfamily->lineSpace;
             x = pos.x;
         }
     }

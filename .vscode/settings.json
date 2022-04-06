@@ -25,6 +25,7 @@
         "shader.h": "c",
         "istream": "c",
         "ostream": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "cstring": "c"
     }
 }
